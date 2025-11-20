@@ -8,9 +8,9 @@ from typing import Dict, List, Any, cast
 SENTINELBENCH_TASK_VARIANTS = {
     # Time-based variants
     # Reactor variants
-    "reactor-easy": [30, 60, 300, 900, 3600, 7200, 14400, 28800, 57600],
-    "reactor-medium": [30, 60, 300, 900, 3600, 7200, 14400, 28800, 57600],
-    "reactor-hard": [30, 60, 300, 900, 3600, 7200, 14400, 28800, 57600],
+    "reactor-easy": [30, 60, 300, 900, 3600, 7200],  #14400, 28800, 57600
+    "reactor-medium": [30, 60, 300, 900, 3600, 7200], #14400, 28800, 57600
+    "reactor-hard": [30, 60, 300, 900, 3600, 7200], #14400, 28800, 57600
     # Teams monitor variants
     "teams-monitor-easy": [30, 60, 300, 900, 3600, 7200],
     "teams-monitor-medium": [30, 60, 300, 900, 3600, 7200],
@@ -46,57 +46,57 @@ SENTINELBENCH_TASK_VARIANTS = {
 SENTINELBENCH_TEST_VARIANTS = {
     # Time-based test variants (2 time points) - all tasks have easy/medium/hard variants
     # Reactor variants
-    "reactor-easy": [30],
-    "reactor-medium": [30],
-    "reactor-hard": [30],
+    "reactor-easy": [14400, 28800, 57600, 115200],
+    "reactor-medium": [14400, 28800, 57600, 115200],
+    "reactor-hard": [14400, 28800, 57600, 115200],
     # Teams monitor variants
-    "teams-monitor-easy": [30],
-    "teams-monitor-medium": [30],
-    "teams-monitor-hard": [30],
-    # LinkedIn monitor variants
-    "linkedin-monitor-easy": [30],
-    "linkedin-monitor-medium": [30],
-    "linkedin-monitor-hard": [30],
-    # Flight booker variants
-    "flight-monitor-easy": [30],
-    "flight-monitor-medium": [30],
-    "flight-monitor-hard": [30],
-    # News checker variants
-    "news-checker-easy": [30],
-    "news-checker-medium": [30],
-    "news-checker-hard": [30],
-    # GitHub watcher variants
-    "github-watcher-easy": [30],
-    "github-watcher-medium": [30],
-    "github-watcher-hard": [30],
-    # Count-based test variants (2 count points) - all tasks have easy/medium/hard variants
-    # Animal mover variants
-    "animal-mover-easy": [2],
-    "animal-mover-medium": [2],
-    "animal-mover-hard": [2],
-    # Button presser variants (same scaling as animal-mover)
-    "button-presser-easy": [2],
-    "button-presser-medium": [2],
-    "button-presser-hard": [2],
+    # "teams-monitor-easy": [30],
+    # "teams-monitor-medium": [30],
+    # "teams-monitor-hard": [30],
+    # # LinkedIn monitor variants
+    # "linkedin-monitor-easy": [30],
+    # "linkedin-monitor-medium": [30],
+    # "linkedin-monitor-hard": [30],
+    # # Flight booker variants
+    # "flight-monitor-easy": [30],
+    # "flight-monitor-medium": [30],
+    # "flight-monitor-hard": [30],
+    # # News checker variants
+    # "news-checker-easy": [30],
+    # "news-checker-medium": [30],
+    # "news-checker-hard": [30],
+    # # GitHub watcher variants
+    # "github-watcher-easy": [30],
+    # "github-watcher-medium": [30],
+    # "github-watcher-hard": [30],
+    # # Count-based test variants (2 count points) - all tasks have easy/medium/hard variants
+    # # Animal mover variants
+    # "animal-mover-easy": [2],
+    # "animal-mover-medium": [2],
+    # "animal-mover-hard": [2],
+    # # Button presser variants (same scaling as animal-mover)
+    # "button-presser-easy": [2],
+    # "button-presser-medium": [2],
+    # "button-presser-hard": [2],
 }
 
 # Timeout configuration for SentinelBench tasks
 DURATION_TASK_TIMEOUTS = {
-    30: 30,  # 30s task -> 30min timeout
-    60: 30,  # 60s task -> 30min timeout
-    300: 45,  # 5min task -> 45min timeout
-    900: 60,  # 15min task -> 60min timeout
-    3600: 90,  # 1h task -> 90min timeout
+    30: 180,  # 30s task -> 30min timeout
+    60: 180,  # 60s task -> 30min timeout
+    300: 180,  # 5min task -> 45min timeout
+    900: 180,  # 15min task -> 60min timeout
+    3600: 180,  # 1h task -> 90min timeout
     7200: 180,  # 2h task -> 180min timeout
 }
 
 COUNT_TASK_TIMEOUTS = {
-    2: 10,  # 2 actions -> 10min timeout
-    4: 15,  # 4 actions -> 15min timeout
-    8: 30,  # 8 actions -> 30min timeout
-    16: 60,  # 16 actions -> 60min timeout
-    32: 90,  # 32 actions -> 90min timeout
-    64: 120,  # 64 actions -> 120min timeout
+    2: 180,  # 2 actions -> 10min timeout
+    4: 180,  # 4 actions -> 15min timeout
+    8: 180,  # 8 actions -> 30min timeout
+    16: 180,  # 16 actions -> 60min timeout
+    32: 180,  # 32 actions -> 90min timeout
+    64: 180,  # 64 actions -> 120min timeout
 }
 
 # Task categorization sets

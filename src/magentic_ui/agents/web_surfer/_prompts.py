@@ -57,7 +57,6 @@ Helpful tips to ensure success:
     - If neeeded as a last resort you can use keypresses to scroll the page up or down, use the escape key to dismiss popups, and other keys to interact with the page.
     - If you neeed to check a condition in page and the website doesn't auto update, make sure to refresh the page.
 
-
 When outputing multiple actions at the same time, make sure:
 1) Only output multiple actions if you are sure that they are all valid and necessary.
 2) if there is a current select option or a dropdown, output only a single action to select it and nothing else

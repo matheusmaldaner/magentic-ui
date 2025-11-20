@@ -171,6 +171,9 @@ class SentinelBenchBenchmark(Benchmark):
                     variant_url = self._build_parameterized_url(
                         base_url, task_id, param_value
                     )
+                    # Authenticate SentinelBench by passing password into the url
+                    variant_url += '&password=microsoftaifrontiers-blogpost'
+                    
                     logging.info(
                         f"[DEBUG] Creating variant: id='{variant_id}', url='{variant_url}'"
                     )
@@ -214,6 +217,9 @@ class SentinelBenchBenchmark(Benchmark):
                     variant_url = self._build_parameterized_url(
                         base_url, task_id, default_value
                     )
+                    # Authenticate SentinelBench by passing password into the url
+                    variant_url += '&password=microsoftaifrontiers-blogpost'
+
                     logging.info(
                         f"[DEBUG] Creating default variant: id='{variant_id}', url='{variant_url}'"
                     )

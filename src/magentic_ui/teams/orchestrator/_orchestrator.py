@@ -828,7 +828,6 @@ class Orchestrator(BaseGroupChatManager):
             assert plan_response is not None
             self._state.plan = Plan.from_list_of_dicts_or_str(plan_response["steps"])
             self._state.plan_str = str(self._state.plan)
-
             # add plan_response to the message thread
             self._state.message_history.append(
                 TextMessage(
@@ -1428,21 +1427,6 @@ class Orchestrator(BaseGroupChatManager):
                 else:
                     time_since_last_check = 0.0
                 last_check_time = current_time
-
-                # Send a status update that we're actively checking
-                checking_metadata = {
-                    "type": "sentinel_status",
-                    "sentinel_id": sentinel_step_id,
-                    "check_number": str(iteration),
-                    "total_checks": str(iteration),
-                    "runtime": str(int(time_since_started)),
-                    "status": "checking",
-                }
-                await self._log_message_agentchat(
-                    f"Performing check #{iteration}...",
-                    internal=False,
-                    metadata=checking_metadata,
-                )
 
                 # loads the initial state of the agent
                 if can_save_load and initial_agent_state is not None:

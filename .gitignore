@@ -222,3 +222,6 @@ SentinelBench/sentinelbench/.env.production
 SentinelBench/sentinelbench/.env.development
 SentinelBench/sentinelbench/.wrangler/
 SentinelBench/sentinelbench/coverage/
+
+# Experiment config files
+experiments/endpoint_configs/config*

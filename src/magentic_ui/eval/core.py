@@ -517,12 +517,11 @@ def run_benchmark_func(
                 for base_task_item in base_task_list:
                     for difficulty_item in difficulty_list:
                         # Get tasks for this combination
-                        # SentinelBench's get_split_tasks accepts these additional parameters
-                        combo_tasks = benchmark.get_split_tasks(  # type: ignore[call-arg]
+                        combo_tasks = benchmark.get_split_tasks(  # type: ignore[reportUnknownVariableType,reportCallIssue]
                             split,
-                            task_id=task_id_item,  # type: ignore[call-arg]
-                            base_task=base_task_item,  # type: ignore[call-arg]
-                            difficulty=difficulty_item,  # type: ignore[call-arg]
+                            task_id=task_id_item,
+                            base_task=base_task_item,
+                            difficulty=difficulty_item,
                         )
                         all_task_ids.extend(combo_tasks)  # type: ignore[reportUnknownArgumentType]
 

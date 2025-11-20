@@ -1197,8 +1197,11 @@ class SentinelBenchAnalyzer:
         ax3.yaxis.set_major_formatter(FuncFormatter(lambda x, p: f"${x:.3f}"))
 
         # Overall title
+        sentiment_suffix = (
+            " (With Sentinel)" if self.config.get("sentinel_mode", False) else ""
+        )
         fig.suptitle(
-            f'Performance Analysis: {task_name.replace("-", " ").title()}',
+            f'Performance Analysis: {task_name.replace("-", " ").title()}{sentiment_suffix}',
             fontsize=22,
             fontweight="bold",
             y=1.05,
@@ -1957,6 +1960,14 @@ def main(
             rich_help_panel="🎨 Plot Customization",
         ),
     ] = False,
+    # === LABELS & DISPLAY ===
+    sentinel_mode: Annotated[
+        bool,
+        typer.Option(
+            help="🎭 Add sentinel suffix to single-directory analysis titles",
+            rich_help_panel="🏷️ Labels & Display",
+        ),
+    ] = False,
     # === PERFORMANCE OPTIONS ===
     parallel: Annotated[
         bool,
@@ -2148,6 +2159,7 @@ def main(
         "plot_format": plot_format,
         "plot_dpi": plot_dpi,
         "no_plots": no_plots,
+        "sentinel_mode": sentinel_mode,
         "parallel": parallel,
         "skip_individual": skip_individual,
         "verbose": verbose,

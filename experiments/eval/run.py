@@ -105,18 +105,22 @@ def run_system_evaluation(
     benchmark_constructor: Optional[Callable[..., Benchmark]] = None
     if args["dataset"] == "WebVoyager":
         # Download the dataset (only needed once)
-        client = ChatCompletionClient.load_component(
-            {
-                "provider": "OpenAIChatCompletionClient",
+
+        # Use model_client from config if provided, otherwise fall back to hardcoded GPT-5
+        eval_client_config = config.get("model_client") if config else None
+
+        if eval_client_config:
+            client = ChatCompletionClient.load_component(eval_client_config)
+        else:
+            client = ChatCompletionClient.load_component(
+                {
+                    "provider": "OpenAIChatCompletionClient",
                     "config": {
                         "model": "gpt-5",
-                },
-                "max_retries": 10,
-            }
-        )
-        # client = ChatCompletionClient.load_component(
-        #     config['gpt4o_client']
-        # )
+                    },
+                    "max_retries": 10,
+                }
+            )
 
         def create_benchmark(data_dir="WebVoyager", name="WebVoyager"):
             benchmark = WebVoyagerBenchmark(
