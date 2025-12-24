@@ -3,6 +3,7 @@ import logging
 import requests
 import pandas as pd
 from typing import List, Union, Dict, Optional, Any
+from urllib.parse import urlsplit, urlunsplit, parse_qsl, urlencode
 from ...benchmark import Benchmark
 from ...models import BaseTask, BaseCandidate, BaseEvalResult
 from .task_variants import SENTINELBENCH_DEFAULT_PARAMS, DURATION_TASKS, COUNT_TASKS
@@ -126,7 +127,30 @@ class SentinelBenchBenchmark(Benchmark):
             # Cast pandas Series to dict to avoid type issues
             row_dict: Dict[str, Any] = row.to_dict()  # type: ignore
             task_id = str(row_dict["id"])
-            base_url = f"{self.base_website_path}{str(row_dict['path'])}"
+            raw_url_value = row_dict.get("url")
+            raw_url = str(raw_url_value).strip() if raw_url_value else ""
+
+            if raw_url:
+                if "{base_url}" in raw_url:
+                    base_url = raw_url.replace(
+                        "{base_url}", self.base_website_path.rstrip("/")
+                    )
+                else:
+                    raw_parts = urlsplit(raw_url)
+                    if raw_parts.scheme and raw_parts.netloc:
+                        base_url = f"{self.base_website_path.rstrip('/')}{raw_parts.path}"
+                        if raw_parts.query:
+                            base_url += f"?{raw_parts.query}"
+                        if raw_parts.fragment:
+                            base_url += f"#{raw_parts.fragment}"
+                    else:
+                        relative = raw_url if raw_url.startswith("/") else f"/{raw_url}"
+                        base_url = f"{self.base_website_path.rstrip('/')}{relative}"
+            else:
+                base_url = f"{self.base_website_path.rstrip('/')}/{str(row_dict['path']).lstrip('/')}"
+
+            task_type_value = row_dict.get("task_type")
+            task_type = str(task_type_value).strip() if task_type_value else ""
             logging.info(
                 f"[DEBUG] Processing task from dataset: id='{task_id}', path='{str(row_dict['path'])}', base_task='{str(row_dict.get('base_task', 'N/A'))}'"
             )
@@ -138,6 +162,7 @@ class SentinelBenchBenchmark(Benchmark):
                 "icon": str(row_dict.get("icon", "")),
                 "difficulty": str(row_dict.get("difficulty", "")),
                 "base_task": str(row_dict.get("base_task", "")),
+                "task_type": task_type,
                 "duration": str(row_dict.get("duration", "")),
                 "criteria": str(row_dict.get("criteria", "")),
                 "activity": str(row_dict.get("activity", "")),
@@ -169,10 +194,14 @@ class SentinelBenchBenchmark(Benchmark):
                 for param_value in self.task_variants[task_id]:
                     variant_id = f"{task_id}/{param_value}"
                     variant_url = self._build_parameterized_url(
-                        base_url, task_id, param_value
+                        base_url, task_id, param_value, task_type=task_type
                     )
                     # Authenticate SentinelBench by passing password into the url
-                    variant_url += '&password=microsoftaifrontiers-blogpost'
+                    variant_url += (
+                        "&password=microsoftaifrontiers-blogpost"
+                        if "?" in variant_url
+                        else "?password=microsoftaifrontiers-blogpost"
+                    )
                     
                     logging.info(
                         f"[DEBUG] Creating variant: id='{variant_id}', url='{variant_url}'"
@@ -215,10 +244,14 @@ class SentinelBenchBenchmark(Benchmark):
                     default_value = list(self.default_params[task_id].values())[0]
                     variant_id = f"{task_id}/{default_value}"
                     variant_url = self._build_parameterized_url(
-                        base_url, task_id, default_value
+                        base_url, task_id, default_value, task_type=task_type
                     )
                     # Authenticate SentinelBench by passing password into the url
-                    variant_url += '&password=microsoftaifrontiers-blogpost'
+                    variant_url += (
+                        "&password=microsoftaifrontiers-blogpost"
+                        if "?" in variant_url
+                        else "?password=microsoftaifrontiers-blogpost"
+                    )
 
                     logging.info(
                         f"[DEBUG] Creating default variant: id='{variant_id}', url='{variant_url}'"
@@ -236,9 +269,40 @@ class SentinelBenchBenchmark(Benchmark):
                         "Upon successful completion you may get a password or a code which you should extract."
                     )
                 else:
-                    # ERROR: ALL tasks should have default params defined
-                    raise ValueError(
-                        f"Task '{task_id}' has no variants and no default params defined. All tasks must have default parameters in self.default_params."
+                    inferred_task_type = task_type.strip().lower()
+                    if inferred_task_type == "time-based":
+                        default_value = 30
+                    elif inferred_task_type == "repetition-based":
+                        default_value = 2
+                    else:
+                        raise ValueError(
+                            f"Task '{task_id}' has no variants and no default params defined. "
+                            "Add it to SENTINELBENCH_DEFAULT_PARAMS or include 'task_type' in the dataset."
+                        )
+
+                    variant_id = f"{task_id}/{default_value}"
+                    variant_url = self._build_parameterized_url(
+                        base_url, task_id, default_value, task_type=task_type
+                    )
+                    variant_url += (
+                        "&password=microsoftaifrontiers-blogpost"
+                        if "?" in variant_url
+                        else "?password=microsoftaifrontiers-blogpost"
+                    )
+
+                    logging.info(
+                        f"[DEBUG] Creating inferred default variant: id='{variant_id}', url='{variant_url}'"
+                    )
+
+                    variant_metadata = base_metadata.copy()
+                    variant_metadata["base_task_id"] = task_id
+                    variant_metadata["parameter_value"] = default_value
+
+                    prompt = (
+                        f"You are already on the correct page for this task. {str(row_dict['description'])}. "
+                        "All required information and functionality is available on this current page. "
+                        "Do not navigate away from this page or open new tabs. "
+                        "Upon successful completion you may get a password or a code which you should extract."
                     )
 
                 task = BaseTask(
@@ -255,22 +319,35 @@ class SentinelBenchBenchmark(Benchmark):
         logging.info(f"[SentinelBench] Loaded {len(self.tasks)} total examples.")
 
     def _build_parameterized_url(
-        self, base_url: str, task_id: str, param_value: Union[int, float]
+        self,
+        base_url: str,
+        task_id: str,
+        param_value: Union[int, float],
+        task_type: Optional[str] = None,
     ) -> str:
         """
         Build URL with parameters for specific SentinelBench tasks.
         """
-        # Duration-based tasks (time in seconds)
+        param_name: Optional[str] = None
         if task_id in DURATION_TASKS:
-            return f"{base_url}?duration={param_value}"
-
-        # Count-based tasks (number of items/actions)
+            param_name = "duration"
         elif task_id in COUNT_TASKS:
-            return f"{base_url}?count={param_value}"
-
-        # No parameters for other tasks
+            param_name = "count"
         else:
+            normalized_task_type = (task_type or "").strip().lower()
+            if normalized_task_type == "time-based":
+                param_name = "duration"
+            elif normalized_task_type == "repetition-based":
+                param_name = "count"
+        if not param_name:
             return base_url
+
+        parts = urlsplit(base_url)
+        query_pairs = parse_qsl(parts.query, keep_blank_values=True)
+        query_dict = dict(query_pairs)
+        query_dict[param_name] = str(param_value)
+        new_query = urlencode(query_dict, doseq=True)
+        return urlunsplit((parts.scheme, parts.netloc, parts.path, new_query, parts.fragment))
 
     def get_split_tasks(
         self,

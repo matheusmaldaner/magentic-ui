@@ -162,6 +162,21 @@ SENTINELBENCH_DEFAULT_PARAMS = {
     "button-presser-hard": {"count": 2},
 }
 
+# Micromail (Outlook Replica): 20 task IDs (5×2×2) with duration parameter
+MICROMAIL_TASK_IDS = [
+    f"micromail-{task}-{criteria}-{activity}"
+    for task in ["unread", "junk", "attachment", "flagged", "inbox"]
+    for criteria in ["absolute", "relative"]
+    for activity in ["passive", "active"]
+]
+
+for _task_id in MICROMAIL_TASK_IDS:
+    # Default duration if not overridden by task_variants
+    SENTINELBENCH_DEFAULT_PARAMS.setdefault(_task_id, {"duration": 30})
+    # Keep parity with other time-based tasks
+    SENTINELBENCH_TASK_VARIANTS.setdefault(_task_id, [30, 60, 300, 900, 3600, 7200])
+    DURATION_TASKS.add(_task_id)
+
 # Model pricing for cost calculations ($/1K tokens)
 MODEL_PRICING: Dict[str, Dict[str, float]] = {
     # OpenAI GPT
